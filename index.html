@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Marcador Online de Ping Pong | Placar de Tênis de Mesa Grátis</title>
+  <meta name="description" content="Marcador online de ping pong grátis. Placar eletrônico de tênis de mesa para marcar pontos ao vivo no celular. Contador de sets, rodízio e sala compartilhada." />
+  <meta name="keywords" content="marcador online ping pong, marcador ping pong, placar ping pong, placar tênis de mesa, placar eletrônico ping pong, contador de pontos ping pong, scoreboard ping pong, marcador de pontos tênis de mesa, scoreboard tênis de mesa, placar online ping pong" />
+  <meta name="author" content="Júlio César" />
+  <meta name="robots" content="index, follow" />
+  <meta name="googlebot" content="index, follow" />
+  <meta name="theme-color" content="#7b5cff" />
+  <link rel="canonical" href="https://placartenisdemesa.online/" />
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:title" content="Marcador Online de Ping Pong" />
+  <meta property="og:description" content="Marcador e placar eletrônico grátis de ping pong e tênis de mesa. Pontos ao vivo no celular." />
+  <meta property="og:url" content="https://placartenisdemesa.online/" />
+  <meta property="og:image" content="https://placartenisdemesa.online/alien.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Marcador Online de Ping Pong" />
+  <meta name="twitter:description" content="Marcador e placar eletrônico grátis de ping pong e tênis de mesa." />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Marcador Online de Ping Pong",
+    "alternateName": ["Placar de Tênis de Mesa", "Scoreboard Ping Pong", "Placar eletrônico ping pong", "Contador de pontos tênis de mesa"],
+    "url": "https://placartenisdemesa.online/",
+    "applicationCategory": "SportsApplication",
+    "operatingSystem": "Any",
+    "inLanguage": "pt-BR",
+    "description": "Marcador online de ping pong e placar eletrônico de tênis de mesa para marcar pontos ao vivo.",
+    "keywords": "marcador online ping pong, placar tênis de mesa, scoreboard ping pong",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Como usar um marcador online de ping pong?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Crie uma sala, passe o código e marque os pontos no celular ou no computador. Os dois veem o mesmo placar." }
+      },
+      {
+        "@type": "Question",
+        "name": "Esse placar de tênis de mesa é grátis?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sim. O marcador online de ping pong é grátis e funciona no navegador, sem instalar aplicativo." }
+      },
+      {
+        "@type": "Question",
+        "name": "Dá para usar como scoreboard de ping pong no celular?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sim. Abra a página no celular e use como placar eletrônico de tênis de mesa, com sets e tempo." }
+      }
+    ]
+  }
+  </script>
+  <script src="https://unpkg.com/mqtt@5.10.4/dist/mqtt.min.js"></script>
+  <style>
+    :root {
+      --bg: #050508;
+      --purple: #7b5cff;
+      --purple-2: #9b7bff;
+      --text: #f5f6ff;
+      --muted: #9aa0c3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(80,50,160,.35), transparent 42%),
+        linear-gradient(180deg, #07070e 0%, #12132a 48%, #1a1b3a 100%);
+      color: var(--text);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: auto 0 18% 0;
+      height: 90px;
+      background: repeating-linear-gradient(90deg, transparent 0 8px, rgba(0,0,0,.35) 8px 9px);
+      opacity: .25;
+      pointer-events: none;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 16px 24px; }
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      letter-spacing: .28em;
+      font-size: 18px;
+      font-weight: 700;
+      color: #d7d9ee;
+      margin: 6px 0 18px;
+    }
+    .seo-lead {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .seo-box {
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid #2c2548;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .seo-box h2 {
+      margin: 12px 0 6px;
+      font-size: 15px;
+      color: #d7d9ee;
+    }
+    .seo-box p { margin: 0 0 8px; }
+    .socials {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 14px;
+      opacity: .55;
+    }
+    .socials a {
+      color: #9aa0c3;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .socials a:hover { color: #d7d9ee; }
+    .title i { height: 1px; width: 70px; background: linear-gradient(90deg, transparent, var(--purple)); }
+    .title i:last-child { background: linear-gradient(90deg, var(--purple), transparent); }
+    .setup {
+      max-width: 760px;
+      margin: 0 auto;
+      background: rgba(18, 16, 36, .72);
+      border: 1px solid rgba(140, 120, 220, .35);
+      border-radius: 22px;
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+    .board {
+      background: linear-gradient(180deg, #12121c, #0b0b12);
+      border: 1px solid #2c2548;
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+    input, select, button {
+      font: inherit;
+      border-radius: 10px;
+      border: 1px solid #342b58;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      background: #0a0a12;
+      color: var(--text);
+    }
+    .field { flex: 1; min-width: 150px; }
+    button {
+      cursor: pointer;
+      padding: 12px 14px;
+      background: #1a1730;
+      color: var(--text);
+    }
+    .start {
+      width: 100%;
+      margin-top: 16px;
+      background: linear-gradient(90deg, #7b4dff, #9b6dff);
+      color: #fff;
+      font-weight: bold;
+      border: 0;
+      padding: 14px;
+    }
+    .join {
+      width: 100%;
+      margin-top: 10px;
+      background: transparent;
+      border: 1px solid #4aa3ff;
+      color: #8ec5ff;
+    }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 12px; line-height: 1.4; text-align: center; }
+    .donate {
+      margin-top: 16px;
+      border: 1px solid rgba(140,120,220,.3);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .donate p { margin: 0; max-width: 280px; }
+    .donate-actions { display: flex; align-items: center; gap: 12px; }
+    .donate button {
+      background: #fff;
+      color: #111;
+      border: 0;
+      font-size: 13px;
+    }
+    .donate img {
+      width: 72px;
+      height: 72px;
+      background: #fff;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+    .rank {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .rank-item {
+      background: #12121c;
+      border: 1px solid #332a5a;
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .rank-item.active { border-color: var(--purple); }
+    .next-in { color: #c4b5ff; font-size: 14px; margin-top: 8px; text-align: center; }
+    .hidden { display: none; }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      background: #141225;
+      border: 1px solid #3a3163;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+    .status.ok { color: #86efac; }
+    .status.off { color: #fca5a5; }
+    .arena {
+      display: grid;
+      grid-template-columns: 1fr 240px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .card {
+      position: relative;
+      background: linear-gradient(180deg, #171722, #0d0d14);
+      border: 1px solid #3a3168;
+      clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+      padding: 16px 14px 18px;
+      text-align: center;
+    }
+    .card.a { border-left: 4px solid var(--purple); }
+    .card.b { border-right: 4px solid var(--purple); }
+    .face {
+      width: 86px;
+      height: 86px;
+      object-fit: cover;
+      object-position: top;
+      margin: 0 auto 8px;
+      border: 2px solid #6d5cff;
+      display: none;
+    }
+    .face.on { display: block; }
+    body.arena-on .role { display: none; }
+    body.arena-on .face {
+      width: 168px;
+      height: 168px;
+      margin: 2px auto 10px;
+      border-width: 3px;
+    }
+    .rank-item { align-items: center; gap: 8px; }
+    .rank-item img {
+      width: 28px;
+      height: 28px;
+      object-fit: cover;
+      object-position: top;
+      display: none;
+    }
+    .rank-item img.on { display: block; }
+    body.arena-aliens .face, body.arena-aliens .rank-item img { border-color: #2fd9a8; }
+    body.arena-nonha .face, body.arena-nonha .rank-item img { border-color: #e07be8; }
+    .role {
+      color: var(--purple-2);
+      letter-spacing: .16em;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .name {
+      font-size: 42px;
+      font-weight: 800;
+      margin: 0 auto 12px;
+      padding-bottom: 10px;
+      width: fit-content;
+      max-width: 100%;
+      line-height: 1.05;
+      border-bottom: 8px solid transparent;
+    }
+    .card.serving .name { border-bottom-color: #e11d48; }
+    .score {
+      font-size: 118px;
+      font-weight: 800;
+      line-height: .9;
+      margin: 4px 0 12px;
+    }
+    .score.hot { color: #ffe14a; }
+    .plus {
+      width: 100%;
+      font-size: 24px;
+      font-weight: 800;
+      background: #2a2158;
+    }
+    .dots-row {
+      display: grid;
+      grid-template-columns: 1fr 240px 1fr;
+      gap: 16px;
+      margin-top: 10px;
+    }
+    .card-dots {
+      text-align: center;
+      white-space: nowrap;
+    }
+    .card-dots small {
+      display: block;
+      letter-spacing: .2em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .dot {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      margin: 0 4px;
+      border: 2px solid #5b4bb3;
+      background: transparent;
+    }
+    .dot.on { background: var(--purple); }
+    .center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+    }
+    .alien {
+      width: 220px;
+      height: 240px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 22px rgba(150,140,255,.28));
+    }
+    .pick {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      background: transparent;
+      border: 0;
+      padding: 4px;
+    }
+    .bottom {
+      display: flex;
+      align-items: end;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .bottom .timer { flex: 0 0 130px; }
+    .bottom .history-wrap { flex: 1; min-width: 0; }
+    .history-wrap { text-align: center; }
+    .history-wrap small {
+      display: block;
+      letter-spacing: .24em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .history {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      border: 1px solid #4b3d8b;
+      overflow-x: auto;
+      overflow-y: hidden;
+      background: #0d0d16;
+      border-radius: 8px;
+      max-width: 100%;
+    }
+    .history::-webkit-scrollbar { height: 8px; }
+    .history::-webkit-scrollbar-thumb { background: #5b4bb3; border-radius: 8px; }
+    .setbox {
+      flex: 0 0 190px;
+      text-align: center;
+      padding: 10px 6px;
+      border-right: 1px solid #332a5a;
+    }
+    .setbox:last-child { border-right: 0; }
+    .setbox strong { display: block; font-size: 13px; color: #c4b5ff; }
+    .setbox b { display: block; font-size: 16px; }
+    .setbox span { color: var(--muted); font-size: 12px; }
+    .timer {
+      background: #0d0d14;
+      border: 1px solid #3a3168;
+      padding: 8px 10px;
+      clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+    }
+    .timer small { display: block; letter-spacing: .14em; color: var(--muted); }
+    .timer b { font-size: 22px; }
+    .controls { display: flex; gap: 8px; margin-top: 12px; }
+    .controls button { flex: 1; }
+    .mid-btns { display: none; width: 100%; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .mid-btns button { width: 100%; }
+    body.arena-on #pdfBtn { display: none; }
+    @media (min-width: 901px) {
+      body.arena-on .mid-btns { display: flex; }
+      body.arena-on #undoBtn, body.arena-on #swapBtn { display: none; }
+    }
+    .winner {
+      text-align: center;
+      min-height: 24px;
+      margin-top: 10px;
+      color: #c4b5ff;
+      font-size: 20px;
+    }
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      padding: 16px;
+    }
+    .modal {
+      width: min(420px, 100%);
+      background: #16161f;
+      border: 1px solid #5b4bb3;
+      border-radius: 16px;
+      padding: 22px 18px;
+      text-align: center;
+    }
+    .modal h3 { margin: 0 0 8px; font-size: 22px; }
+    .modal .trophy { font-size: 52px; line-height: 1; margin: 4px 0 8px; }
+    .modal .champ { font-size: 36px; line-height: 1.1; margin: 0 0 10px; color: #f6e27a; }
+    .modal p { color: var(--muted); margin: 0 0 16px; }
+    .modal-actions { display: flex; gap: 8px; }
+    .modal-actions button { flex: 1; }
+    .modal-bg.hidden { display: none !important; }
+    #printFrame { position: absolute; width: 0; height: 0; border: 0; }
+    .arena-crew { display: none; gap: 10px; margin: 10px 0 12px; }
+    body.arena-on .arena-crew { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .arena-crew img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      object-position: top;
+    }
+    body.arena-nonha {
+      background:
+        radial-gradient(circle at 20% 10%, rgba(220,40,180,.55), transparent 38%),
+        radial-gradient(circle at 80% 80%, rgba(90,20,160,.4), transparent 42%),
+        linear-gradient(180deg, #1a0218 0%, #2a0830 50%, #3a1048 100%);
+    }
+    body.arena-nonha .title { color: #ffb7f2; }
+    body.arena-nonha .card { border-color: #d46ad8; }
+    body.arena-nonha .arena-crew img { border: 2px solid #e07be8; box-shadow: 0 0 18px rgba(220,80,200,.45); }
+    body.arena-nonha .start, body.arena-nonha .controls button:last-child { background: linear-gradient(90deg, #c43ad8, #ff6ad8); }
+    body.arena-aliens {
+      background:
+        radial-gradient(circle at 80% 8%, rgba(40,255,190,.4), transparent 36%),
+        radial-gradient(circle at 10% 90%, rgba(20,80,255,.28), transparent 40%),
+        linear-gradient(180deg, #001612 0%, #032820 48%, #063a30 100%);
+    }
+    body.arena-aliens .title { color: #7dffcf; }
+    body.arena-aliens .card { border-color: #2fd9a8; }
+    body.arena-aliens .arena-crew img { border: 2px solid #2fd9a8; box-shadow: 0 0 18px rgba(40,255,180,.4); }
+    body.arena-aliens .start, body.arena-aliens .controls button:last-child { background: linear-gradient(90deg, #0d8f6a, #2ee6a8); }
+    .draw {
+      background: #12101c;
+      border: 1px solid #3a3168;
+      border-radius: 18px;
+      padding: 18px 14px;
+      text-align: center;
+    }
+    .draw h2 { margin: 0 0 8px; font-size: 22px; }
+    .draw p { color: var(--muted); margin: 0 0 16px; }
+    .draw-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .pick {
+      background: #171722;
+      border: 2px solid #3a3168;
+      padding: 10px;
+      transition: border-color .15s, transform .15s;
+    }
+    .draw .pick img {
+      width: 100%;
+      height: 190px;
+      object-fit: contain;
+      object-position: center;
+      background: #0b0b12;
+    }
+    .pick b { display: block; margin-top: 8px; }
+    .pick.on { border-color: #ffe14a; transform: scale(1.03); }
+    .pick.win { border-color: #4ade80; }
+    .pick.wait { border-color: #64748b; opacity: .7; }
+    .draw button { width: 100%; margin-top: 14px; background: linear-gradient(90deg, #7b4dff, #9b6dff); color: #fff; border: 0; font-weight: 800; }
+    body.arena-nonha .draw { border-color: #d46ad8; }
+    body.arena-aliens .draw { border-color: #2fd9a8; }
+    @media (max-width: 900px) {
+      .wrap { padding: 12px 10px 20px; }
+      .setup { padding: 16px 12px; }
+      .field { min-width: 100%; }
+      .title { font-size: 15px; letter-spacing: .18em; }
+      .title i { width: 36px; }
+      .arena {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: "logo logo" "a b";
+        gap: 8px;
+      }
+      .center { grid-area: logo; min-height: 0; }
+      .card.a { grid-area: a; }
+      .card.b { grid-area: b; }
+      .card { padding: 10px 8px 12px; clip-path: none; border-radius: 14px; }
+      .dots-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .dots-row > :nth-child(2) { display: none; }
+      .bottom { flex-direction: column; align-items: stretch; }
+      .alien { width: 92px; height: 100px; }
+      .score { font-size: 52px; }
+      .name { font-size: 20px; border-bottom-width: 5px; }
+      body.arena-on .face { width: 112px; height: 112px; }
+      .plus { font-size: 18px; padding: 10px; }
+      .role { font-size: 10px; }
+      .controls { flex-wrap: wrap; }
+      .controls button { min-width: 46%; }
+      .donate { flex-direction: column; text-align: center; }
+      .donate p { max-width: none; }
+      .setbox { flex: 0 0 160px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="title"><i></i><span id="mainTitle">TÊNIS DE MESA</span><i></i></h1>
+
+    <section id="setup" class="setup">
+      <p class="seo-lead">Marcador online de ping pong e placar eletrônico de tênis de mesa. Grátis, no celular ou no computador.</p>
+      <div class="row">
+        <div class="field">
+          <label>Formato</label>
+          <select id="mode" onchange="toggleMode()">
+            <option value="normal">Placar normal</option>
+            <option value="rodizio">Rodízio</option>
+          </select>
+        </div>
+        <div class="field extra-player hidden" id="countField">
+          <label>Quantos jogadores</label>
+          <select id="playerCount" onchange="toggleMode()">
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Jogador 1</label>
+          <input id="nameA" value="Julio" />
+        </div>
+        <div class="field">
+          <label>Jogador 2</label>
+          <input id="nameB" value="Isaque" />
+        </div>
+        <div class="field extra-n hidden" data-n="3">
+          <label>Jogador 3</label>
+          <input id="name2" value="Jogador 3" />
+        </div>
+        <div class="field extra-n hidden" data-n="4">
+          <label>Jogador 4</label>
+          <input id="name3" value="Jogador 4" />
+        </div>
+        <div class="field extra-n hidden" data-n="5">
+          <label>Jogador 5</label>
+          <input id="name4" value="Jogador 5" />
+        </div>
+        <div class="field extra-n hidden" data-n="6">
+          <label>Jogador 6</label>
+          <input id="name5" value="Jogador 6" />
+        </div>
+        <div class="field extra-n hidden" data-n="7">
+          <label>Jogador 7</label>
+          <input id="name6" value="Jogador 7" />
+        </div>
+        <div class="field extra-n hidden" data-n="8">
+          <label>Jogador 8</label>
+          <input id="name7" value="Jogador 8" />
+        </div>
+        <div class="field extra-n hidden" data-n="9">
+          <label>Jogador 9</label>
+          <input id="name8" value="Jogador 9" />
+        </div>
+        <div class="field extra-n hidden" data-n="10">
+          <label>Jogador 10</label>
+          <input id="name9" value="Jogador 10" />
+        </div>
+        <div class="field">
+          <label>Melhor de quantos sets?</label>
+          <select id="bestOf">
+            <option value="1">1 set</option>
+            <option value="3">Melhor de 3</option>
+            <option value="5" selected>Melhor de 5</option>
+            <option value="7">Melhor de 7</option>
+            <option value="0">Livre, sem limite</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Quem saca primeiro?</label>
+          <select id="firstServe">
+            <option value="0">Jogador 1</option>
+            <option value="1">Jogador 2</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Código da sala</label>
+          <input id="room" maxlength="8" placeholder="Ex: 48291" />
+        </div>
+      </div>
+      <button class="start" onclick="createRoom()">Criar sala e começar</button>
+      <button class="join" onclick="joinRoom()">Entrar na sala</button>
+      <p class="hint">Um cria a sala e passa o código. O outro entra com o mesmo código. Os dois precisam estar online.</p>
+      <div class="donate">
+        <p>Ajude nossos desenvolvedores com qualquer valor</p>
+        <div class="donate-actions">
+          <button type="button" onclick="window.open('https://livepix.gg/yaradart','_blank')">Apoiar</button>
+          <img id="qrImg" src="qr.png" alt="QR Code para apoiar o marcador de ping pong" />
+        </div>
+      </div>
+      <nav class="socials" aria-label="Redes sociais">
+        <a href="https://www.tiktok.com/@placartenisdemesa.online" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://www.youtube.com/@Placartenisdemesa.online" target="_blank" rel="noopener">YouTube</a>
+        <a href="https://www.facebook.com/Placartenisdemesa.online" target="_blank" rel="noopener">Facebook</a>
+      </nav>
+      <section class="seo-box">
+        <h2>Marcador online de ping pong</h2>
+        <p>Use este site como marcador de ping pong, placar de tênis de mesa ou scoreboard. Marque pontos, sets e o tempo da partida sem papel e sem aplicativo.</p>
+        <h2>Placar eletrônico no celular</h2>
+        <p>Um cria a sala e o outro entra com o mesmo código. Serve para jogo normal, rodízio e campeonato informal.</p>
+      </section>
+    </section>
+
+    <section id="draw" class="draw hidden">
+      <h2 id="drawTitle">Quem começa?</h2>
+      <p id="drawHint">Toca em sortear. Dois entram, dois esperam.</p>
+      <div class="draw-grid" id="drawGrid"></div>
+      <button id="drawBtn" onclick="runDraw()">Sortear</button>
+    </section>
+
+    <section id="board" class="board hidden">
+      <div class="meta">
+        <div class="pill">Sala <span id="roomLabel"></span></div>
+        <div class="pill status off" id="netStatus">Conectando...</div>
+      </div>
+      <div class="arena">
+        <div class="card a" id="cardA">
+          <div class="role">JOGADOR 1</div>
+          <img class="face" id="faceA" alt="" />
+          <div class="name" id="labelA">JULIO</div>
+          <div class="score" id="ptsA">00</div>
+          <button class="plus" onclick="point(0)">+1</button>
+        </div>
+
+        <div class="center">
+          <img id="alienImg" class="alien" alt="Mascote do placar de tênis de mesa" src="alien.png" />
+          <div class="mid-btns">
+            <button onclick="undo()">Desfazer</button>
+            <button onclick="swapSides()">Trocar lados</button>
+          </div>
+        </div>
+
+        <div class="card b" id="cardB">
+          <div class="role">JOGADOR 2</div>
+          <img class="face" id="faceB" alt="" />
+          <div class="name" id="labelB">ISAQUE</div>
+          <div class="score" id="ptsB">00</div>
+          <button class="plus" onclick="point(1)">+1</button>
+        </div>
+      </div>
+      <div class="dots-row">
+        <div class="card-dots">
+          <small>SETS</small>
+          <div id="dotsA"></div>
+        </div>
+        <div></div>
+        <div class="card-dots">
+          <small>SETS</small>
+          <div id="dotsB"></div>
+        </div>
+      </div>
+
+      <div class="bottom">
+        <div class="timer">
+          <small>TEMPO</small>
+          <b id="timer">00:00</b>
+        </div>
+        <div class="history-wrap">
+          <small>SETS</small>
+          <div class="history" id="history"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="undoBtn" onclick="undo()">Desfazer</button>
+        <button id="swapBtn" onclick="swapSides()">Trocar lados</button>
+        <button onclick="resetSet()">Zerar set</button>
+        <button id="pdfBtn" onclick="exportPdf()">Relatório PDF</button>
+        <button onclick="resetMatch()">Finalizar</button>
+      </div>
+      <div class="winner" id="winner"></div>
+      <div id="rotationBox" class="hidden">
+        <div class="next-in">Próximo a entrar: <b id="nextName">-</b></div>
+        <div class="rank" id="rank"></div>
+      </div>
+    </section>
+  </div>
+
+  <div id="pdfModal" class="modal-bg hidden">
+    <div class="modal">
+      <div class="trophy" id="champEmoji">🏆</div>
+      <h3 id="champTitle">Parabéns</h3>
+      <div class="champ" id="champName">-</div>
+      <p id="champMsg">Campeão da sessão. Quer gerar o PDF do relatório?</p>
+      <div class="modal-actions">
+        <button onclick="confirmPdf(true)">Sim, gerar PDF</button>
+        <button onclick="confirmPdf(false)">Agora não</button>
+      </div>
+    </div>
+  </div>
+  <iframe id="printFrame" title="impressao"></iframe>
+
+  <script>
+    const SAVE_KEY = "placar-tenis-sessao";
+    const ARENAS = {
+      NONHA15: { title: "ARENA NONHA", theme: "arena-nonha", sound: "nonha" },
+      ALIENS15: { title: "ARENA ALIENS", theme: "arena-aliens", sound: "aliens" }
+    };
+    const PHOTOS = {
+      julio: "jogador1.jpg",
+      isaque: "jogador2.jpg",
+      islanio: "jogador3.jpg",
+      iderlanio: "jogador4.jpg"
+    };
+    const ARENA_PLAYERS = ["Julio", "Isaque", "Islânio", "Iderlânio"];
+    const TOPIC_PREFIX = "placar-tenis-mesa/v1/";
+    const DEFAULT_ALIEN = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Emoji_u1f47d.svg/240px-Emoji_u1f47d.svg.png";
+    const state = {
+      mode: "normal",
+      names: ["Julio", "Isaque"],
+      bestOf: 5,
+      sets: [0, 0],
+      pts: [0, 0],
+      firstServe: 0,
+      history: [],
+      setLog: [],
+      over: false,
+      winner: "",
+      rev: 0,
+      startedAt: 0,
+      sessionStartedAt: 0,
+      roster: [],
+      active: [0, 1],
+      queue: [2, 3],
+      arenaReady: false,
+      closed: false
+    };
+
+    function toggleMode() {
+      const rot = document.getElementById("mode").value === "rodizio";
+      const count = Number(document.getElementById("playerCount").value || 4);
+      document.getElementById("countField").classList.toggle("hidden", !rot);
+      document.querySelectorAll(".extra-n").forEach((el) => {
+        const n = Number(el.getAttribute("data-n"));
+        el.classList.toggle("hidden", !rot || n > count);
+      });
+    }
+
+    let client = null;
+    let room = "";
+    let applyingRemote = false;
+    let clientId = Math.random().toString(36).slice(2);
+    let tick = null;
+
+    function isOpen() { return !state.bestOf; }
+    function neededSets() { return isOpen() ? 999 : Math.ceil(state.bestOf / 2); }
+    function pad(n) { return String(n).padStart(2, "0"); }
+
+    function serveIndex() {
+      const t = state.pts[0] + state.pts[1];
+      const deuce = state.pts[0] >= 10 && state.pts[1] >= 10;
+      return (state.firstServe + Math.floor(t / (deuce ? 1 : 2))) % 2;
+    }
+
+    function setStatus(ok, text) {
+      const el = document.getElementById("netStatus");
+      el.textContent = text;
+      el.classList.toggle("ok", ok);
+      el.classList.toggle("off", !ok);
+    }
+
+    function dotsHtml(won) {
+      if (isOpen()) return "<b>" + won + "</b>";
+      let html = "";
+      for (let i = 0; i < neededSets(); i++) {
+        html += '<i class="dot' + (i < won ? " on" : "") + '"></i>';
+      }
+      return html;
+    }
+
+    function elapsedText(from) {
+      const s = Math.max(0, Math.floor(((from ? Date.now() - from : 0)) / 1000));
+      return pad(Math.floor(s / 60)) + ":" + pad(s % 60);
+    }
+
+    function formatSet(item) {
+      if (!item) return { title: "-", score: "-", time: "" };
+      if (typeof item === "string") {
+        return { title: "", score: item.replace("-", " x "), time: "" };
+      }
+      return {
+        title: item.winner || "",
+        score: (item.left || state.names[0]) + " " + pad(item.a) + " x " + pad(item.b) + " " + (item.right || state.names[1]),
+        time: item.time || ""
+      };
+    }
+
+    function historyHtml() {
+      const total = (state.mode === "rodizio" || isOpen()) ? Math.max(state.setLog.length, 1) : state.bestOf;
+      let html = "";
+      for (let i = 0; i < total; i++) {
+        const f = formatSet(state.setLog[i]);
+        html += '<div class="setbox"><strong>' + (f.title ? f.title : "&nbsp;") + "</strong><b>" + f.score + "</b><span>" + (i + 1) + "º · " + (f.time || "--:--") + "</span></div>";
+      }
+      return html;
+    }
+
+    function renderTimer() {
+      if (!state.startedAt) {
+        document.getElementById("timer").textContent = "00:00";
+        return;
+      }
+      const s = Math.max(0, Math.floor((Date.now() - state.startedAt) / 1000));
+      document.getElementById("timer").textContent = pad(Math.floor(s / 60)) + ":" + pad(s % 60);
+    }
+
+    function keyName(name) {
+      return String(name || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z]/g, "");
+    }
+
+    function photoOf(name) {
+      return PHOTOS[keyName(name)] || "";
+    }
+
+    function setFace(id, name) {
+      const el = document.getElementById(id);
+      const src = ARENAS[room] ? photoOf(name) : "";
+      el.src = src || "";
+      el.classList.toggle("on", !!src);
+    }
+
+    function render() {
+      document.getElementById("labelA").textContent = state.names[0].toUpperCase();
+      document.getElementById("labelB").textContent = state.names[1].toUpperCase();
+      setFace("faceA", state.names[0]);
+      setFace("faceB", state.names[1]);
+      document.getElementById("ptsA").textContent = pad(state.pts[0]);
+      document.getElementById("ptsB").textContent = pad(state.pts[1]);
+      document.getElementById("ptsA").classList.toggle("hot", state.pts[0] >= 9);
+      document.getElementById("ptsB").classList.toggle("hot", state.pts[1] >= 9);
+      document.getElementById("dotsA").innerHTML = dotsHtml(state.sets[0]);
+      document.getElementById("dotsB").innerHTML = dotsHtml(state.sets[1]);
+      document.getElementById("history").innerHTML = historyHtml();
+      document.getElementById("roomLabel").textContent = room;
+      document.getElementById("winner").textContent = state.winner || "";
+      const serve = state.over ? -1 : serveIndex();
+      document.getElementById("cardA").classList.toggle("serving", serve === 0);
+      document.getElementById("cardB").classList.toggle("serving", serve === 1);
+      const rot = state.mode === "rodizio";
+      document.getElementById("rotationBox").classList.toggle("hidden", !rot);
+      if (rot) {
+        const next = state.roster[state.queue[0]];
+        document.getElementById("nextName").textContent = next ? next.name : "-";
+        const order = state.roster.map((p, i) => ({ i, name: p.name, wins: p.wins })).sort((a, b) => b.wins - a.wins);
+        document.getElementById("rank").innerHTML = order.map((p) => {
+          const on = state.active.indexOf(p.i) !== -1;
+          const pic = ARENAS[room] ? photoOf(p.name) : "";
+          return '<div class="rank-item' + (on ? " active" : "") + '"><img src="' + pic + '" class="' + (pic ? "on" : "") + '" alt="" /><span>' + p.name + (on ? " · jogando" : "") + "</span><b>" + p.wins + "</b></div>";
+        }).join("");
+      }
+      renderTimer();
+      saveSession();
+    }
+
+    function saveSession() {
+      if (!room) return;
+      if (ARENAS[room] && !state.arenaReady) return;
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({
+          room: room,
+          elapsed: state.startedAt ? Date.now() - state.startedAt : 0,
+          state: state
+        }));
+      } catch (e) {}
+    }
+
+    function clearSession() {
+      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    }
+
+    function restoreSession() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data || !data.room || !data.state) return false;
+        Object.keys(data.state).forEach((k) => { state[k] = data.state[k]; });
+        if (data.elapsed) state.startedAt = Date.now() - data.elapsed;
+        else state.startedAt = 0;
+        connect(data.room, false);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function snapshot() { return Object.assign({}, state, { from: clientId }); }
+
+    let holdRemote = false;
+
+    function applySnapshot(data) {
+      if (holdRemote) return;
+      if (!data || data.from === clientId) return;
+      if (typeof data.rev === "number" && data.rev < state.rev) return;
+      applyingRemote = true;
+      ["mode","names","bestOf","sets","pts","firstServe","history","setLog","over","winner","rev","startedAt","sessionStartedAt","roster","active","queue","arenaReady","closed"].forEach((k) => {
+        if (data[k] !== undefined) state[k] = data[k];
+      });
+      applyingRemote = false;
+      if (data.closed) {
+        document.getElementById("pdfModal").classList.add("hidden");
+        leaveMatch();
+        return;
+      }
+      if (state.arenaReady && ARENAS[room]) {
+        document.getElementById("draw").classList.add("hidden");
+        document.getElementById("board").classList.remove("hidden");
+      }
+      render();
+    }
+
+    function publish() {
+      if (!client || applyingRemote || !room) return;
+      state.rev += 1;
+      client.publish(TOPIC_PREFIX + room, JSON.stringify(snapshot()), { qos: 1, retain: true });
+    }
+
+    function connect(code, asCreator) {
+      room = String(code).trim().toUpperCase();
+      if (!/^[A-Z0-9]{4,8}$/.test(room)) {
+        alert("Usa um código de 4 a 8 letras ou números, sem espaço.");
+        return;
+      }
+      applyArena(room);
+      document.getElementById("setup").classList.add("hidden");
+      holdRemote = !!(ARENAS[room] && asCreator && !state.arenaReady);
+      if (ARENAS[room] && !state.arenaReady) {
+        document.getElementById("board").classList.add("hidden");
+        openDraw();
+      } else {
+        document.getElementById("draw").classList.add("hidden");
+        document.getElementById("board").classList.remove("hidden");
+      }
+      render();
+      setStatus(false, "Conectando...");
+      if (client) { try { client.end(true); } catch (e) {} }
+      client = mqtt.connect("wss://broker.emqx.io:8084/mqtt", {
+        clientId: "placar-" + clientId,
+        clean: true,
+        reconnectPeriod: 2000
+      });
+      client.on("connect", () => {
+        setStatus(true, "Online");
+        client.subscribe(TOPIC_PREFIX + room, { qos: 1 });
+        if (asCreator) {
+          if (ARENAS[room] && !state.arenaReady) {
+            state.rev = Date.now();
+            state.arenaReady = false;
+            state.closed = false;
+          }
+          publish();
+          holdRemote = false;
+        }
+      });
+      client.on("reconnect", () => setStatus(false, "Reconectando..."));
+      client.on("offline", () => setStatus(false, "Offline"));
+      client.on("error", () => setStatus(false, "Erro de conexão"));
+      client.on("message", (_t, payload) => {
+        try { applySnapshot(JSON.parse(payload.toString())); } catch (e) {}
+      });
+      clearInterval(tick);
+      tick = setInterval(renderTimer, 1000);
+    }
+
+    function createRoom() {
+      const input = document.getElementById("room");
+      if (!input.value.trim()) input.value = String(Math.floor(100000 + Math.random() * 900000));
+      const code = input.value.trim().toUpperCase();
+      if (ARENAS[code]) {
+        state.arenaReady = false;
+        connect(code, true);
+        return;
+      }
+      state.mode = document.getElementById("mode").value;
+      const n1 = document.getElementById("nameA").value.trim() || "Julio";
+      const n2 = document.getElementById("nameB").value.trim() || "Isaque";
+      const extras = [];
+      for (let i = 2; i <= 9; i++) {
+        const el = document.getElementById("name" + i);
+        extras.push((el && el.value.trim()) || ("Jogador " + (i + 1)));
+      }
+      const count = state.mode === "rodizio" ? Number(document.getElementById("playerCount").value || 4) : 2;
+      const all = [n1, n2].concat(extras).slice(0, Math.max(2, count));
+      state.names = [all[0], all[1]];
+      state.roster = all.map((name) => ({ name: name, wins: 0 }));
+      state.active = [0, 1];
+      state.queue = [];
+      for (let i = 2; i < state.roster.length; i++) state.queue.push(i);
+      state.bestOf = Number(document.getElementById("bestOf").value);
+      state.firstServe = Number(document.getElementById("firstServe").value);
+      state.sets = [0, 0];
+      state.pts = [0, 0];
+      state.history = [];
+      state.setLog = [];
+      state.over = false;
+      state.winner = "";
+      state.rev = 0;
+      state.startedAt = 0;
+      state.sessionStartedAt = Date.now();
+      state.closed = false;
+      connect(input.value, true);
+    }
+
+    function joinRoom() {
+      const input = document.getElementById("room");
+      if (!input.value.trim()) {
+        alert("Coloca o código da sala pra entrar.");
+        return;
+      }
+      connect(input.value, false);
+    }
+
+    function wonSet(i) {
+      const a = state.pts[i];
+      const b = state.pts[1 - i];
+      if (a === 8 && b === 0) return true;
+      return a >= 11 && a - b >= 2;
+    }
+
+    function point(i) {
+      if (state.over) return;
+      state.history.push({
+        pts: state.pts.slice(),
+        sets: state.sets.slice(),
+        firstServe: state.firstServe,
+        setLog: state.setLog.slice(),
+        over: state.over,
+        winner: state.winner,
+        names: state.names.slice(),
+        roster: JSON.parse(JSON.stringify(state.roster)),
+        active: state.active.slice(),
+        queue: state.queue.slice()
+      });
+      if (!state.startedAt) state.startedAt = Date.now();
+      state.pts[i] += 1;
+      if (wonSet(i)) {
+        state.setLog.push({
+          a: state.pts[0],
+          b: state.pts[1],
+          winner: state.names[i],
+          left: state.names[0],
+          right: state.names[1],
+          time: elapsedText(state.startedAt)
+        });
+        state.sets[i] += 1;
+        if (state.mode === "rodizio") {
+          const winId = state.active[i];
+          const loseSide = 1 - i;
+          const loseId = state.active[loseSide];
+          state.roster[winId].wins += 1;
+          state.queue.push(loseId);
+          state.active[loseSide] = state.queue.shift();
+          state.names = [state.roster[state.active[0]].name, state.roster[state.active[1]].name];
+          state.pts = [0, 0];
+          state.sets = [0, 0];
+          state.firstServe = loseSide;
+          state.startedAt = 0;
+          state.winner = state.roster[winId].name + " venceu. Entra " + state.names[loseSide] + ".";
+          setTimeout(() => {
+            if (state.winner.indexOf("Entra") !== -1) {
+              state.winner = "";
+              render();
+              publish();
+            }
+          }, 1800);
+        } else if (state.sets[i] >= neededSets()) {
+          state.over = true;
+          state.winner = state.names[i] + " venceu a partida!";
+        } else {
+          state.pts = [0, 0];
+          state.firstServe = 1 - state.firstServe;
+          state.startedAt = 0;
+          state.winner = state.names[i] + " venceu o set.";
+          setTimeout(() => {
+            if (!state.over && state.winner.indexOf("set") !== -1) {
+              state.winner = "";
+              render();
+              publish();
+            }
+          }, 1600);
+        }
+      }
+      render();
+      publish();
+    }
+
+    function undo() {
+      const last = state.history.pop();
+      if (!last) return;
+      state.pts = last.pts;
+      state.sets = last.sets;
+      state.firstServe = last.firstServe;
+      state.setLog = last.setLog;
+      state.over = last.over;
+      state.winner = last.winner || "";
+      if (last.names) state.names = last.names;
+      if (last.roster) state.roster = last.roster;
+      if (last.active) state.active = last.active;
+      if (last.queue) state.queue = last.queue;
+      render();
+      publish();
+    }
+
+    function flipLog(item) {
+      if (!item) return item;
+      if (typeof item === "string") {
+        const p = item.split("-");
+        return p[1] + "-" + p[0];
+      }
+      return { a: item.b, b: item.a, winner: item.winner };
+    }
+
+    function swapSides() {
+      state.names = [state.names[1], state.names[0]];
+      state.pts = [state.pts[1], state.pts[0]];
+      state.sets = [state.sets[1], state.sets[0]];
+      state.active = [state.active[1], state.active[0]];
+      state.firstServe = 1 - state.firstServe;
+      state.setLog = state.setLog.map(flipLog);
+      render();
+      publish();
+    }
+
+    function resetSet() {
+      state.pts = [0, 0];
+      state.winner = "";
+      state.startedAt = 0;
+      render();
+      publish();
+    }
+
+    function exportPdf() {
+      const now = new Date();
+      const when = now.toLocaleDateString("pt-BR") + " " + now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      const start = state.sessionStartedAt || state.startedAt;
+      const total = start ? elapsedText(start) : "--:--";
+      const rank = (state.roster || []).map((p) => p).sort((a, b) => b.wins - a.wins);
+      const champ = rank[0] ? rank[0].name : "-";
+      let rows = "";
+      (state.setLog || []).forEach((item, i) => {
+        const f = formatSet(item);
+        rows += "<tr><td>" + (i + 1) + "</td><td>" + (f.title || "-") + "</td><td>" + f.score + "</td><td>" + (f.time || "--:--") + "</td></tr>";
+      });
+      if (!rows) rows = "<tr><td colspan='4'>Nenhum set finalizado ainda.</td></tr>";
+      let standings = "";
+      rank.forEach((p, i) => {
+        standings += "<tr><td>" + (i + 1) + "º</td><td>" + p.name + "</td><td>" + p.wins + "</td></tr>";
+      });
+      const html = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Relatorio</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#eee}</style></head><body><h1>Relatorio de tenis de mesa</h1><p>Sala " + room + " · " + when + " · Duracao " + total + "</p><h2>Classificacao</h2><p>Primeiro: <b>" + champ + "</b></p><table><tr><th>Pos</th><th>Jogador</th><th>Vitorias</th></tr>" + standings + "</table><h2>Partidas</h2><table><tr><th>#</th><th>Vencedor</th><th>Placar</th><th>Tempo</th></tr>" + rows + "</table></body></html>";
+      const frame = document.getElementById("printFrame");
+      frame.onload = function () {
+        try { frame.contentWindow.focus(); frame.contentWindow.print(); } catch (e) {}
+      };
+      frame.srcdoc = html;
+    }
+
+    function champName() {
+      if (state.mode === "rodizio" && state.roster && state.roster.length) {
+        return state.roster.slice().sort((a, b) => b.wins - a.wins)[0].name;
+      }
+      if (state.sets[0] !== state.sets[1]) return state.names[state.sets[0] > state.sets[1] ? 0 : 1];
+      return state.names[0];
+    }
+
+    const PRAISE = [
+      { emoji: "🏆", title: "Olha o campeão", msg: "Hoje o povo só serviu de aquecimento. Quer o PDF pra ter prova?" },
+      { emoji: "👑", title: "Rei da mesa", msg: "Pode ir embora cantando. Os outros que lavem a raiva. Gera o relatório?" },
+      { emoji: "🔥", title: "Pegou fogo", msg: "Tava fácil demais. Quase injusto. Salva o PDF antes que neguem?" },
+      { emoji: "😎", title: "Tranquilo demais", msg: "Nem suou. Os amigos que se virem com o segundo lugar. Quer o PDF?" },
+      { emoji: "🐸", title: "Comeu todo mundo", msg: "Foi passeio. Próxima vez aumenta a dificuldade. Gera o relatório?" },
+      { emoji: "💪", title: "Não teve jogo", msg: "Chegou, bateu e foi embora. Quer o papelzinho da humilhação?" },
+      { emoji: "🎯", title: "Mira certa", msg: "Cada ponto parecia ensaiado. Salva o PDF pra mandar no grupo?" },
+      { emoji: "🐐", title: "O cara", msg: "Pode falar que é o melhor da casa hoje. Tem PDF pra comprovar." },
+      { emoji: "😂", title: "Foi feio pro resto", msg: "Alguém avisa os perdedores que já pode ir embora. Gera o relatório?" },
+      { emoji: "🚀", title: "Sumiu no placar", msg: "Os outros ainda tão procurando a bolinha. Quer salvar o PDF?" }
+    ];
+
+    function playFanfare(kind) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        const style = kind || (ARENAS[room] && ARENAS[room].sound) || "normal";
+        const pack = {
+          nonha: { notes: [392, 523.25, 659.25, 784, 987.77], type: "sawtooth", extra: [196, 246.94, 311.13] },
+          aliens: { notes: [880, 1174.66, 698.46, 1318.51, 1760], type: "square", extra: [220, 277.18, 329.63] },
+          normal: { notes: [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5], type: "triangle", extra: [261.63, 329.63, 392] }
+        }[style];
+        pack.notes.forEach((freq, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = pack.type;
+          o.frequency.value = freq;
+          g.gain.setValueAtTime(0.0001, now);
+          g.gain.exponentialRampToValueAtTime(style === "aliens" ? 0.1 : 0.16, now + i * 0.14 + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.14 + 0.26);
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.start(now + i * 0.14);
+          o.stop(now + i * 0.14 + 0.3);
+        });
+        pack.extra.forEach((freq) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = "sine";
+          o.frequency.value = freq;
+          g.gain.setValueAtTime(0.0001, now + 0.8);
+          g.gain.exponentialRampToValueAtTime(0.1, now + 0.9);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + 2.1);
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.start(now + 0.8);
+          o.stop(now + 2.2);
+        });
+      } catch (e) {}
+    }
+
+    function resetMatch() {
+      state.closed = true;
+      publish();
+      leavingAfterPdf = true;
+      const pick = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+      document.getElementById("champEmoji").textContent = pick.emoji;
+      document.getElementById("champTitle").textContent = pick.title;
+      document.getElementById("champName").textContent = champName().toUpperCase();
+      document.getElementById("champMsg").textContent = pick.msg;
+      document.getElementById("pdfModal").classList.remove("hidden");
+      playFanfare();
+    }
+
+    let leavingAfterPdf = false;
+
+    function confirmPdf(yes) {
+      document.getElementById("pdfModal").classList.add("hidden");
+      if (yes) exportPdf();
+      if (leavingAfterPdf) {
+        leavingAfterPdf = false;
+        setTimeout(leaveMatch, yes ? 800 : 0);
+      }
+    }
+
+    function applyArena(code) {
+      document.body.classList.remove("arena-on", "arena-nonha", "arena-aliens");
+      const arena = ARENAS[String(code || "").toUpperCase()];
+      if (!arena) {
+        document.getElementById("mainTitle").textContent = "TÊNIS DE MESA";
+        return;
+      }
+      document.body.classList.add("arena-on", arena.theme);
+      document.getElementById("mainTitle").textContent = arena.title;
+    }
+
+    function leaveMatch() {
+      if (client) { try { client.end(true); } catch (e) {} client = null; }
+      clearInterval(tick);
+      room = "";
+      clearSession();
+      applyArena("");
+      state.arenaReady = false;
+      document.getElementById("draw").classList.add("hidden");
+      document.getElementById("board").classList.add("hidden");
+      document.getElementById("setup").classList.remove("hidden");
+    }
+
+    let drawing = false;
+
+    function openDraw() {
+      drawing = false;
+      document.getElementById("draw").classList.remove("hidden");
+      document.getElementById("drawGrid").innerHTML = ARENA_PLAYERS.map((name, i) => {
+        return '<div class="pick" id="pick' + i + '"><img src="' + photoOf(name) + '" alt="" /><b>' + name + "</b></div>";
+      }).join("");
+      const btn = document.getElementById("drawBtn");
+      btn.classList.remove("hidden");
+      btn.disabled = false;
+      btn.textContent = "Sortear";
+      btn.onclick = runDraw;
+      document.getElementById("drawHint").textContent = "Toca em sortear. Dois entram, dois esperam.";
+    }
+
+    function runDraw() {
+      if (drawing) return;
+      drawing = true;
+      const btn = document.getElementById("drawBtn");
+      btn.disabled = true;
+      btn.textContent = "Sorteando...";
+      let n = 0;
+      const t = setInterval(() => {
+        const cards = document.querySelectorAll(".pick");
+        if (!cards.length) return;
+        cards.forEach((el) => el.classList.remove("on", "win", "wait"));
+        cards[n % cards.length].classList.add("on");
+        n += 1;
+      }, 90);
+      setTimeout(() => {
+        clearInterval(t);
+        const a = Math.floor(Math.random() * 4);
+        let b = Math.floor(Math.random() * 3);
+        if (b >= a) b += 1;
+        document.querySelectorAll(".pick").forEach((el, i) => {
+          el.classList.remove("on");
+          el.classList.toggle("win", i === a || i === b);
+          el.classList.toggle("wait", i !== a && i !== b);
+        });
+        document.getElementById("drawHint").textContent = ARENA_PLAYERS[a] + " x " + ARENA_PLAYERS[b];
+        btn.disabled = false;
+        btn.textContent = "Começar partida";
+        btn.onclick = function () { finishDraw(a, b); };
+        drawing = false;
+      }, 1700);
+    }
+
+    function finishDraw(a, b) {
+      state.mode = "rodizio";
+      state.roster = ARENA_PLAYERS.map((name) => ({ name: name, wins: 0 }));
+      state.active = [a, b];
+      state.queue = [0, 1, 2, 3].filter((i) => i !== a && i !== b);
+      state.names = [ARENA_PLAYERS[a], ARENA_PLAYERS[b]];
+      state.bestOf = 0;
+      state.firstServe = Math.random() < 0.5 ? 0 : 1;
+      state.sets = [0, 0];
+      state.pts = [0, 0];
+      state.history = [];
+      state.setLog = [];
+      state.over = false;
+      state.winner = "";
+      state.arenaReady = true;
+      state.closed = false;
+      state.startedAt = 0;
+      state.sessionStartedAt = Date.now();
+      document.getElementById("draw").classList.add("hidden");
+      document.getElementById("board").classList.remove("hidden");
+      render();
+      publish();
+    }
+
+    function setAlien(ev) {
+      const file = ev.target.files && ev.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.getElementById("alienImg").src = reader.result;
+        try { localStorage.setItem("placar-alien", reader.result); } catch (e) {}
+      };
+      reader.readAsDataURL(file);
+    }
+
+    restoreSession();
+
+    (function initQr() {
+      const img = document.getElementById("qrImg");
+      if (!img) return;
+      const tries = ["qr.png", "QR.png", "qr.PNG", "qr.jpg", "qr.jpeg", "qr.webp"];
+      let i = 0;
+      img.onerror = function () {
+        i += 1;
+        if (i < tries.length) img.src = tries[i];
+      };
+    })();
+
+    (function initAlien() {
+      const img = document.getElementById("alienImg");
+      try {
+        const saved = localStorage.getItem("placar-alien");
+        if (saved) img.src = saved;
+      } catch (e) {}
+      img.onerror = function () { this.onerror = null; this.src = DEFAULT_ALIEN; };
+    })();
+  </script>
+</body>
+</html>
